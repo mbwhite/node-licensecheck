@@ -72,7 +72,7 @@ for (var i = 2; i < process.argv.length; i++) {
 var overrides = fs.existsSync(overridesPath) &&
     JSON.parse(stripJsonComments(fs.readFileSync(overridesPath, 'utf8'))) || {}
 
-var licenses = licensecheck('.', path, overrides, includeDevDependencies, includeOptDependencies)
+var licenses = licensecheck('.', path, overrides, includeDevDependencies, includeOptDependencies,false)
 if (flat) {
   var dependencies = makeFlatDependencyMap(licenses)
   Object.keys(dependencies).sort().forEach(function (key) {

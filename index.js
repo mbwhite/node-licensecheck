@@ -194,7 +194,7 @@ function formatLicense (license) {
   return 'unknown license'
 }
 
-module.exports = function checkPath (packageName, basePath, overrides, includeDevDependencies, includeOptDependencies, seenList) {
+module.exports = function checkPath (packageName, basePath, overrides, includeDevDependencies, includeOptDependencies, seenList,level) {
   seenList = seenList || {}
   var seenKey = basePath + '|' + packageName
   if (seenList[seenKey]) {
@@ -204,7 +204,7 @@ module.exports = function checkPath (packageName, basePath, overrides, includeDe
   if (!fs.existsSync(basePath)) {
     const parentNodeModules = path.join(path.resolve(basePath, '../../../node_modules'), packageName)
     if (parentNodeModules !== basePath) {
-      return checkPath(packageName, parentNodeModules, overrides, includeDevDependencies, includeOptDependencies, seenList)
+      return checkPath(packageName, parentNodeModules, overrides, includeDevDependencies, includeOptDependencies, seenList,true)
     }
     return null
   }
@@ -278,9 +278,9 @@ module.exports = function checkPath (packageName, basePath, overrides, includeDe
 
   // array of deps
   var dependencies = []
-  var pushDependency = function (dependencyLevel) {
+  var pushDependency = function (dependencyLevel,level) {
     return function (name) {
-      var res = checkPath(name, path.join(basePath, 'node_modules', name), overrides, includeDevDependencies, includeOptDependencies, seenList)
+      var res = checkPath(name, path.join(basePath, 'node_modules', name), overrides, includeDevDependencies, includeOptDependencies, seenList,level)
       if (res) {
         res.name = name
         res.deps = res.deps || []
@@ -290,14 +290,18 @@ module.exports = function checkPath (packageName, basePath, overrides, includeDe
     }
   }
 
-  Object.keys(packageJson.dependencies || {}).forEach(pushDependency(''))
+if (!level){
+
+  Object.keys(packageJson.dependencies || {}).forEach(pushDependency('',true))
   if (includeDevDependencies || false) {
-    Object.keys(packageJson.devDependencies || {}).forEach(pushDependency('Dev'))
+    Object.keys(packageJson.devDependencies || {}).forEach(pushDependency('Dev',true))
   }
 
   if (includeOptDependencies || false) {
-    Object.keys(packageJson.optionalDependencies || {}).forEach(pushDependency('Opt'))
+    Object.keys(packageJson.optionalDependencies || {}).forEach(pushDependency('Opt',true))
   }
+}
+
 
   return {
     name: packageJson.name,
